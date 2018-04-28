@@ -3,7 +3,11 @@ package cz.net21.tools.emn;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
@@ -20,11 +24,16 @@ public class EmailNotificator {
         }
 
         try {
-            SendEmail sendEmail = buildSendMail(args[0]);
+            Properties settings = readSettings(args[0]);
+
+            Sendmail sendmail = buildSendMail(settings);
             String sql = FileUtils.readFileToString(new File(args[1]), Charset.defaultCharset());
             String message = FileUtils.readFileToString(new File(args[2]), Charset.defaultCharset());
+            String subject = settings.getProperty("subject");
 
-            new NotificationProcessor(sendEmail, sql, message).run();
+            try (Connection conn = buildConnection(settings)) {
+                new NotificationProcessor(sendmail, conn, sql, subject, message).run();
+            }
 
         } catch (Exception e) {
             log.error("Exception in the application.", e);
@@ -32,21 +41,33 @@ public class EmailNotificator {
         }
     }
 
-    private static SendEmail buildSendMail(String propertiesFilename) throws IOException {
+    private static Properties readSettings(String settingsFilename) throws IOException {
         Properties props = new Properties();
-        props.load(new FileInputStream(propertiesFilename));
+        try (InputStream properties = new FileInputStream(settingsFilename)) {
+            props.load(properties);
+            return props;
+        }
+    }
 
-        return new SendEmail(
-                props.getProperty("host", "localhost"),
-                props.getProperty("username"),
-                props.getProperty("password"),
-                props.getProperty("from.name", "noreply"),
-                props.getProperty("from.email", "noreply@localhost")
+    private static Sendmail buildSendMail(Properties settings) {
+        return new Sendmail(
+                settings.getProperty("sedmail.host", "localhost"),
+                settings.getProperty("sedmail.username"),
+                settings.getProperty("sedmail.password"),
+                settings.getProperty("from", "noreply@localhost")
+        );
+    }
+
+    private static Connection buildConnection(Properties settings) throws SQLException {
+        return DriverManager.getConnection(
+                settings.getProperty("db.connectionString"),
+                settings.getProperty("db.username"),
+                settings.getProperty("db.password")
         );
     }
 
     private static void printHelp() {
         System.out.println("Usage:");
-        System.out.println("<sendmail.properties> <recepients.sql> <message.txt>");
+        System.out.println("< settings.properties> <recepients.sql> <message.txt>");
     }
 }

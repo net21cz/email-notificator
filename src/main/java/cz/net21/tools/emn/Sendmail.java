@@ -14,18 +14,17 @@ import javax.mail.internet.MimeMessage;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-class SendEmail {
+class Sendmail {
 
     private final Session session;
 
-    private final String fromName;
-    private final String fromEmail;
+    private final String from;
 
-    public SendEmail(String host, String username, String password,
-                     String fromName, String fromEmail) {
+    public Sendmail(String host, String username, String password, String from) {
         Properties props = System.getProperties();
 
         props.setProperty("mail.smtp.host", host);
+        props.setProperty("mail.mime.charset", "UTF-8");
 
         Authenticator auth = null;
         if (username != null && !username.isEmpty()) {
@@ -34,11 +33,10 @@ class SendEmail {
         }
         this.session = Session.getDefaultInstance(props, auth);
 
-        this.fromName = fromName;
-        this.fromEmail = fromEmail;
+        this.from = from;
     }
 
-    private class SMTPAuthenticator extends javax.mail.Authenticator {
+    private class SMTPAuthenticator extends Authenticator {
 
         private final String username;
         private final String password;
@@ -57,15 +55,15 @@ class SendEmail {
     public void send(String to, String subject, String text) {
         try {
             MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(String.format("%s <%s>", fromName, fromEmail)));
+            message.setFrom(new InternetAddress(from));
             message.setFrom();
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
             message.setSubject(subject);
-            message.setText(text);
+            message.setText(text, "UTF-8");
 
             Transport.send(message);
 
-            log.debug(() -> String.format("Sent mail: %s to %s", subject, to));
+            log.info(() -> String.format("Sent mail: %s to %s", subject, to));
 
         } catch (MessagingException e) {
             log.error("Sending an e-mail failed", e);
