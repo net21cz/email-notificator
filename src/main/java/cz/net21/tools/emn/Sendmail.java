@@ -52,14 +52,17 @@ class Sendmail {
         }
     }
 
+    // TODO https://support.google.com/mail/answer/81126
     public void send(String to, String subject, String text) {
         try {
             MimeMessage message = new MimeMessage(session);
+            message.setSender(new InternetAddress(from));
             message.setFrom(new InternetAddress(from));
-            message.setFrom();
+            message.setReplyTo(new InternetAddress[]{new InternetAddress(from)});
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
             message.setSubject(subject);
             message.setText(text, "UTF-8");
+            message.addHeader("X-Mailer", "NET21 Mailer");
 
             Transport.send(message);
 

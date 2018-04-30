@@ -27,8 +27,8 @@ public class EmailNotificator {
             Properties settings = readSettings(args[0]);
 
             Sendmail sendmail = buildSendMail(settings);
-            String sql = FileUtils.readFileToString(new File(args[1]), Charset.defaultCharset());
-            String message = FileUtils.readFileToString(new File(args[2]), Charset.defaultCharset());
+            String sql = FileUtils.readFileToString(new File(args[1]), Charset.forName("UTF-8"));
+            String message = FileUtils.readFileToString(new File(args[2]), Charset.forName("UTF-8"));
             String subject = settings.getProperty("subject");
 
             try (Connection conn = buildConnection(settings)) {
@@ -68,6 +68,6 @@ public class EmailNotificator {
 
     private static void printHelp() {
         System.out.println("Usage:");
-        System.out.println("< settings.properties> <recepients.sql> <message.txt>");
+        System.out.println("<settings.properties> <recepients.sql> <message.txt>");
     }
 }
