@@ -5,17 +5,17 @@ E-mail notificator based on a SQL result
 
 **settings.properties**
 ```
-sedmail.host = mail.example.com
-sedmail.username = user@example.com
-sedmail.password = 1234
+sedmail.host=mail.example.com
+sedmail.username=user@example.com
+sedmail.password=1234
 
 from=John Smith <john.smith@example.com>
 
 subject=Newsletter!
 
 db.connectionString=jdbc:mysql://localhost:3306/test?useSSL=false
-db.username = root
-db.password = 1234
+db.username=root
+db.password=1234
 ```
 
 **recepients.sql**
